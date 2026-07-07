@@ -1,3 +1,9 @@
+# Healix Frontend
+
+```
+I want to create application in next.js, tailwindcss, shadcn. its a chat bot application just like chatgpt or gemini. where use can login, can have multiple chats, delete chat, ai chat windows, have memory, attach files in chat etc features
+```
+
 # Next.js template
 
 This is a Next.js template with shadcn/ui.
