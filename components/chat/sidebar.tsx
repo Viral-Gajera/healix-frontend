@@ -24,9 +24,11 @@ export function Sidebar() {
   const router = useRouter()
   const params = useParams()
 
-  const handleNewChat = () => {
-    const newChatId = createNewChat()
-    router.push(`/chat/${newChatId}`)
+  const handleNewChat = async () => {
+    const newChatId = await createNewChat()
+    if (newChatId) {
+      router.push(`/chat/${newChatId}`)
+    }
   }
 
   const handleSelectChat = (id: string) => {
@@ -72,7 +74,9 @@ export function Sidebar() {
       {/* New Chat Button */}
       <div className="p-3">
         <button
-          onClick={handleNewChat}
+          onClick={() => {
+            void handleNewChat()
+          }}
           className={cn(
             "flex h-11 w-full items-center justify-center gap-2 rounded-md bg-teal-600 text-white shadow-sm shadow-teal-600/20 transition-all hover:bg-teal-700",
             !sidebarExpanded && "px-0"
@@ -116,7 +120,7 @@ export function Sidebar() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      deleteChat(chat.id)
+                      void deleteChat(chat.id)
                       if (isActive) router.push("/chat")
                     }}
                     className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"

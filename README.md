@@ -12,6 +12,29 @@
 
 # Next.js template
 
+## Backend Integration
+
+The frontend now calls Healix backend APIs directly.
+Assistant responses are streamed token-by-token from the backend using SSE.
+
+Set backend URL in `.env.local`:
+
+```bash
+NEXT_PUBLIC_HEALIX_API_URL=http://localhost:8000
+```
+
+Run backend and frontend together:
+
+```bash
+# Terminal 1
+cd ../healix-backend
+uvicorn predict_api:app --reload --port 8000
+
+# Terminal 2
+cd ../healix-frontend
+npm run dev
+```
+
 This is a Next.js template with shadcn/ui.
 
 ## Adding components

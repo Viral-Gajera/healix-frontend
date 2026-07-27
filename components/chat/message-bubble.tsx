@@ -1,63 +1,81 @@
-import React from "react";
-import { Message, User } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { HeartPulse, User as UserIcon } from "lucide-react";
+import React from "react"
+import { Message, User } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import { HeartPulse, User as UserIcon } from "lucide-react"
 
 interface MessageBubbleProps {
-  message: Message;
-  user: User | null;
+  message: Message
+  user: User | null
+  showStreamingCursor?: boolean
 }
 
-export const MessageBubble = React.memo(function MessageBubble({ message, user }: MessageBubbleProps) {
-  const isUser = message.role === 'user';
-  
+export const MessageBubble = React.memo(function MessageBubble({
+  message,
+  user,
+  showStreamingCursor = false,
+}: MessageBubbleProps) {
+  const isUser = message.role === "user"
+
   return (
-    <div 
+    <div
       className={cn(
-        "flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300",
+        "group flex animate-in gap-4 duration-300 fade-in slide-in-from-bottom-2",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
       {/* Avatar */}
-      <div className="shrink-0 mt-1">
+      <div className="mt-1 shrink-0">
         {isUser ? (
           user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt="User" className="w-8 h-8 rounded-full object-cover ring-2 ring-background border border-border" />
+            <img
+              src={user.avatarUrl}
+              alt="User"
+              className="h-8 w-8 rounded-full border border-border object-cover ring-2 ring-background"
+            />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-              <UserIcon className="w-5 h-5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800">
+              <UserIcon className="h-5 w-5" />
             </div>
           )
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
-            <HeartPulse className="w-4 h-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 text-white shadow-md shadow-teal-500/20">
+            <HeartPulse className="h-4 w-4" />
           </div>
         )}
       </div>
 
       {/* Message Bubble */}
-      <div 
+      <div
         className={cn(
-          "flex flex-col max-w-[80%]",
+          "flex max-w-[100%] flex-col",
           isUser ? "items-end" : "items-start"
         )}
       >
-        <div 
+        <div
           className={cn(
-            "px-5 py-3.5 rounded-md text-[15px] leading-relaxed shadow-sm",
-            isUser 
-              ? "bg-teal-600 text-white rounded-tr-sm" 
-              : "bg-accent/50 border border-border/50 text-foreground rounded-tl-sm"
+            "rounded-md px-5 py-3.5 text-[15px] leading-relaxed shadow-sm",
+            isUser
+              ? "rounded-tr-sm bg-teal-600 text-white"
+              : "rounded-tl-sm border border-border/50 bg-accent/50 text-foreground"
           )}
         >
           <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-             {message.content}
+            {message.content}
+            {showStreamingCursor && (
+              <span
+                aria-hidden="true"
+                className="ml-1 inline-block h-[1em] w-1.5 animate-pulse bg-current align-[-0.1em]"
+              />
+            )}
           </div>
         </div>
-        <span className="text-[11px] text-muted-foreground mt-1.5 px-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-          {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric' }).format(new Date(message.createdAt))}
+        <span className="mt-1.5 px-1 text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+          {new Intl.DateTimeFormat("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+          }).format(new Date(message.createdAt))}
         </span>
       </div>
     </div>
-  );
-});
+  )
+})

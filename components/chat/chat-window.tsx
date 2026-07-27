@@ -14,6 +14,7 @@ export function ChatWindow({ chatId }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const chat = chats.find(c => c.id === chatId);
+  const lastMessageIndex = chat ? chat.messages.length - 1 : -1;
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,29 +56,19 @@ export function ChatWindow({ chatId }: ChatWindowProps) {
             </div>
           </div>
         ) : (
-          chat.messages.map((message) => (
-            <MessageBubble 
-              key={message.id} 
-              message={message} 
-              user={user} 
-            />
-          ))
-        )}
+          chat.messages.map((message, index) => {
+            const showStreamingCursor =
+              isTyping && message.role === "assistant" && index === lastMessageIndex;
 
-        {/* Typing Indicator */}
-        {isTyping && (
-          <div className="flex gap-4 animate-in fade-in duration-300">
-             <div className="shrink-0 mt-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
-                <HeartPulse className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="px-5 py-4 rounded-md rounded-tl-sm bg-accent/50 border border-border/50 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
-          </div>
+            return (
+              <MessageBubble 
+                key={message.id} 
+                message={message} 
+                user={user} 
+                showStreamingCursor={showStreamingCursor}
+              />
+            );
+          })
         )}
 
         <div ref={messagesEndRef} className="h-4" />
