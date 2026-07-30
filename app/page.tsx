@@ -1,47 +1,48 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useChatStore } from "@/hooks/use-chat-store";
-import { Activity, HeartPulse, Sparkles } from "lucide-react";
-import { AuthForm } from "@/components/auth/auth-form";
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useChatStore } from "@/hooks/use-chat-store"
+import { Activity, HeartPulse, Sparkles } from "lucide-react"
+import { AuthForm } from "@/components/auth/auth-form"
 
 export default function Page() {
-  const router = useRouter();
-  const user = useChatStore((state) => state.user);
+  const router = useRouter()
+  const user = useChatStore((state) => state.user)
 
   useEffect(() => {
     if (user) {
-      router.push("/chat");
+      router.push("/chat")
     }
-  }, [user, router]);
+  }, [user, router])
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background dark:bg-[#0a0a0a]">
+    <div className="flex min-h-screen flex-col bg-background md:flex-row dark:bg-[#0a0a0a]">
       {/* Left side - Branding/Decor */}
-      <div className="hidden md:flex w-1/2 relative bg-gradient-to-br from-teal-500 to-emerald-900 overflow-hidden items-center justify-center">
+      <div className="relative hidden w-1/2 items-center justify-center overflow-hidden bg-gradient-to-br from-teal-500 to-emerald-900 md:flex">
         <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute w-[500px] h-[500px] bg-teal-400/30 rounded-full blur-3xl -top-32 -left-32 animate-pulse" />
-        <div className="absolute w-[400px] h-[400px] bg-emerald-300/20 rounded-full blur-3xl -bottom-32 -right-32 animate-pulse delay-1000" />
-        
-        <div className="relative z-10 flex flex-col items-center text-white p-12 text-center">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-white/20 rounded-md backdrop-blur-md shadow-xl border border-white/30">
-              <HeartPulse className="w-10 h-10 text-white" />
+        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] animate-pulse rounded-full bg-teal-400/30 blur-3xl" />
+        <div className="absolute -right-32 -bottom-32 h-[400px] w-[400px] animate-pulse rounded-full bg-emerald-300/20 blur-3xl delay-1000" />
+
+        <div className="relative z-10 flex flex-col items-center p-12 text-center text-white">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="rounded-md border border-white/30 bg-white/20 p-3 shadow-xl backdrop-blur-md">
+              <HeartPulse className="h-10 w-10 text-white" />
             </div>
             <h1 className="text-5xl font-bold tracking-tight">Healix</h1>
           </div>
-          <p className="text-xl text-teal-50 max-w-md font-light leading-relaxed">
-            Your personal, intelligent healthcare companion. Available 24/7 for preliminary guidance and support.
+          <p className="max-w-md text-xl leading-relaxed font-light text-teal-50">
+            Your personal, intelligent healthcare companion. Available 24/7 for
+            preliminary guidance and support.
           </p>
-          
+
           <div className="mt-16 grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-md flex flex-col items-center gap-2">
-              <Sparkles className="w-6 h-6 text-teal-200" />
+            <div className="flex flex-col items-center gap-2 rounded-md border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+              <Sparkles className="h-6 w-6 text-teal-200" />
               <span className="text-sm font-medium">AI-Powered</span>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-md flex flex-col items-center gap-2">
-              <Activity className="w-6 h-6 text-emerald-200" />
+            <div className="flex flex-col items-center gap-2 rounded-md border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+              <Activity className="h-6 w-6 text-emerald-200" />
               <span className="text-sm font-medium">Health Insights</span>
             </div>
           </div>
@@ -49,9 +50,9 @@ export default function Page() {
       </div>
 
       {/* Right side - Login Form */}
-      <div className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24">
+      <div className="flex flex-1 flex-col justify-center px-8 sm:px-16 lg:px-24">
         <AuthForm />
       </div>
     </div>
-  );
+  )
 }

@@ -1,20 +1,30 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { Chat, Message, User, Attachment } from "@/lib/types"
+import { Chat, Message, User, Attachment, UserProfile } from "@/lib/types"
 import {
   BackendMessage,
   BackendSession,
+  BackendUserProfile,
   checkHealth,
   createSession,
   deleteSession as deleteBackendSession,
+  getSessionMemory,
   getSessionMessages,
+  getUserGlobalMemory,
+  getUserProfile,
   listSessions,
   streamSessionMessage,
+  updateSessionMemory as persistSessionMemory,
+  updateUserGlobalMemory as persistUserGlobalMemory,
+  updateUserProfile as persistUserProfile,
 } from "@/lib/api"
 
 interface ChatState {
   user: User | null
+  profile: UserProfile | null
   chats: Chat[]
+  globalMemory: string
+  chatMemories: Record<string, string>
   activeChatId: string | null
   isTyping: boolean
   isLoadingChats: boolean
@@ -24,7 +34,15 @@ interface ChatState {
   login: (name?: string, email?: string) => void
   logout: () => void
   initialize: () => Promise<void>
+  loadProfile: () => Promise<void>
+  saveProfile: (
+    updates: Partial<UserProfile> & { password?: string }
+  ) => Promise<void>
+  loadGlobalMemory: () => Promise<void>
+  saveGlobalMemory: (memory: string) => Promise<void>
   loadChatMessages: (chatId: string) => Promise<void>
+  loadChatMemory: (chatId: string) => Promise<void>
+  saveChatMemory: (chatId: string, memory: string) => Promise<void>
   setActiveChatId: (id: string | null) => void
   createNewChat: () => Promise<string | null>
   deleteChat: (id: string) => Promise<void>
@@ -53,37 +71,225 @@ const toMessage = (item: BackendMessage): Message => ({
   createdAt: toDate(item.timestamp),
 })
 
+const toUserProfile = (
+  user: User | null,
+  profile: BackendUserProfile | null
+): UserProfile | null => {
+  if (!user) {
+    return null
+  }
+
+  return {
+    id: user.id,
+    name: profile?.name?.trim() || user.name,
+    email: profile?.email?.trim() || user.email,
+    avatarUrl: user.avatarUrl,
+    password: profile?.password || "",
+    gender: profile?.gender || "",
+    globalMemory: profile?.global_memory || "",
+    settings: profile?.settings || {},
+  }
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
+      profile: null,
       chats: [],
+      globalMemory: "",
+      chatMemories: {},
       activeChatId: null,
       isTyping: false,
       isLoadingChats: false,
       error: null,
       sidebarExpanded: true,
 
-      login: (name, email) =>
+      login: (name, email) => {
+        const normalizedEmail = email?.trim().toLowerCase() || "user@healix.app"
+        const userId = `user_${normalizedEmail.replace(/[^a-z0-9]/g, "_")}`
         set({
           user: {
-            id: `user-${Date.now()}`,
+            id: userId,
             name: name?.trim() || "Healix User",
-            email: email?.trim() || "user@healix.app",
-            avatarUrl: `https://i.pravatar.cc/150?u=${encodeURIComponent(
-              email?.trim() || "healix-user"
-            )}`,
+            email: normalizedEmail,
+            avatarUrl: `https://i.pravatar.cc/150?u=${encodeURIComponent(normalizedEmail)}`,
           },
-        }),
+          profile: {
+            id: userId,
+            name: name?.trim() || "Healix User",
+            email: normalizedEmail,
+            avatarUrl: `https://i.pravatar.cc/150?u=${encodeURIComponent(normalizedEmail)}`,
+            password: "",
+            gender: "",
+            globalMemory: "",
+            settings: {},
+          },
+        })
+      },
 
       logout: () =>
-        set({ user: null, activeChatId: null, chats: [], error: null }),
+        set({
+          user: null,
+          profile: null,
+          globalMemory: "",
+          chatMemories: {},
+          activeChatId: null,
+          chats: [],
+          error: null,
+        }),
+
+      loadProfile: async () => {
+        const user = get().user
+        if (!user) {
+          return
+        }
+
+        try {
+          const profile = await getUserProfile(user.id, user.name, user.email)
+          const nextProfile = toUserProfile(user, profile)
+          set({
+            profile: nextProfile,
+            globalMemory: nextProfile?.globalMemory || "",
+          })
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to load user profile",
+          })
+        }
+      },
+
+      saveProfile: async (updates) => {
+        const user = get().user
+        const currentProfile = get().profile
+        if (!user) {
+          set({ error: "Please sign in to update profile" })
+          return
+        }
+
+        try {
+          const nextSettings = Object.fromEntries(
+            Object.entries(
+              updates.settings ?? currentProfile?.settings ?? {}
+            ).filter(
+              (entry): entry is [string, string | number | boolean | null] =>
+                entry[1] !== undefined
+            )
+          )
+          const profile = await persistUserProfile(user.id, {
+            name: updates.name,
+            email: updates.email,
+            password: updates.password,
+            gender: updates.gender,
+            settings: nextSettings,
+          })
+          const nextProfile = toUserProfile(
+            {
+              ...user,
+              name: updates.name?.trim() || user.name,
+              email: updates.email?.trim() || user.email,
+            },
+            profile
+          )
+          set({
+            user: nextProfile
+              ? {
+                  id: nextProfile.id,
+                  name: nextProfile.name,
+                  email: nextProfile.email,
+                  avatarUrl: nextProfile.avatarUrl,
+                }
+              : user,
+            profile: nextProfile,
+            globalMemory: nextProfile?.globalMemory || get().globalMemory,
+            error: null,
+          })
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to save user profile",
+          })
+        }
+      },
+
+      loadGlobalMemory: async () => {
+        const user = get().user
+        if (!user) {
+          return
+        }
+
+        try {
+          const memory = await getUserGlobalMemory(
+            user.id,
+            user.name,
+            user.email
+          )
+          set((state) => ({
+            globalMemory: memory,
+            profile: state.profile
+              ? { ...state.profile, globalMemory: memory }
+              : state.profile,
+            error: null,
+          }))
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to load global memory",
+          })
+        }
+      },
+
+      saveGlobalMemory: async (memory) => {
+        const user = get().user
+        if (!user) {
+          set({ error: "Please sign in to save global memory" })
+          return
+        }
+
+        try {
+          const nextMemory = await persistUserGlobalMemory(user.id, memory)
+          set((state) => ({
+            globalMemory: nextMemory,
+            profile: state.profile
+              ? { ...state.profile, globalMemory: nextMemory }
+              : state.profile,
+            error: null,
+          }))
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to save global memory",
+          })
+        }
+      },
 
       initialize: async () => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({
+            chats: [],
+            activeChatId: null,
+            isLoadingChats: false,
+            error: null,
+          })
+          return
+        }
+
         set({ isLoadingChats: true, error: null })
         try {
           await checkHealth()
-          const sessions = await listSessions()
+          await get().loadProfile()
+          await get().loadGlobalMemory()
+          const sessions = await listSessions(userId)
           const chats = sessions.map(toChat)
           set((state) => ({
             chats,
@@ -106,8 +312,14 @@ export const useChatStore = create<ChatState>()(
       },
 
       loadChatMessages: async (chatId) => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({ error: "Please sign in to load chats" })
+          return
+        }
+
         try {
-          const messages = await getSessionMessages(chatId)
+          const messages = await getSessionMessages(chatId, userId)
           set((state) => ({
             chats: state.chats.map((chat) =>
               chat.id === chatId
@@ -132,11 +344,69 @@ export const useChatStore = create<ChatState>()(
         }
       },
 
+      loadChatMemory: async (chatId) => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({ error: "Please sign in to load chat memory" })
+          return
+        }
+
+        try {
+          const memory = await getSessionMemory(chatId, userId)
+          set((state) => ({
+            chatMemories: {
+              ...state.chatMemories,
+              [chatId]: memory,
+            },
+            error: null,
+          }))
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to load chat memory",
+          })
+        }
+      },
+
+      saveChatMemory: async (chatId, memory) => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({ error: "Please sign in to save chat memory" })
+          return
+        }
+
+        try {
+          const nextMemory = await persistSessionMemory(chatId, userId, memory)
+          set((state) => ({
+            chatMemories: {
+              ...state.chatMemories,
+              [chatId]: nextMemory,
+            },
+            error: null,
+          }))
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to save chat memory",
+          })
+        }
+      },
+
       setActiveChatId: (id) => set({ activeChatId: id }),
 
       createNewChat: async () => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({ error: "Please sign in to create chats" })
+          return null
+        }
+
         try {
-          const session = await createSession()
+          const session = await createSession("Disease Diagnosis Chat", userId)
           const newChat = toChat(session)
           set((state) => ({
             chats: [newChat, ...state.chats],
@@ -156,8 +426,14 @@ export const useChatStore = create<ChatState>()(
       },
 
       deleteChat: async (id) => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({ error: "Please sign in to delete chats" })
+          return
+        }
+
         try {
-          await deleteBackendSession(id)
+          await deleteBackendSession(id, userId)
           set((state) => ({
             chats: state.chats.filter((c) => c.id !== id),
             activeChatId: state.activeChatId === id ? null : state.activeChatId,
@@ -172,6 +448,12 @@ export const useChatStore = create<ChatState>()(
       },
 
       sendMessage: async (chatId, content, attachments) => {
+        const userId = get().user?.id
+        if (!userId) {
+          set({ error: "Please sign in to send messages" })
+          return
+        }
+
         const streamAssistantMessageId = `msg-stream-${Date.now()}`
         const userMessage: Message = {
           id: `msg-${Date.now()}`,
@@ -193,15 +475,14 @@ export const useChatStore = create<ChatState>()(
           error: null,
           chats: state.chats.map((chat) => {
             if (chat.id === chatId) {
-              const title =
-                chat.messages.length === 0
-                  ? `${content.slice(0, 30)}${content.length > 30 ? "..." : ""}`
-                  : chat.title
               return {
                 ...chat,
-                title,
                 updatedAt: new Date(),
-                messages: [...chat.messages, userMessage, pendingAssistantMessage],
+                messages: [
+                  ...chat.messages,
+                  userMessage,
+                  pendingAssistantMessage,
+                ],
               }
             }
             return chat
@@ -212,7 +493,7 @@ export const useChatStore = create<ChatState>()(
           let streamError: string | null = null
           let streamDone = false
 
-          await streamSessionMessage(chatId, content, {
+          await streamSessionMessage(chatId, userId, content, {
             onToken: (chunk) => {
               set((state) => ({
                 chats: state.chats.map((chat) => {
@@ -232,7 +513,7 @@ export const useChatStore = create<ChatState>()(
                 }),
               }))
             },
-            onDone: (assistant) => {
+            onDone: (assistant, session) => {
               streamDone = true
               set((state) => ({
                 chats: state.chats.map((chat) => {
@@ -242,6 +523,7 @@ export const useChatStore = create<ChatState>()(
 
                   return {
                     ...chat,
+                    title: session?.topic?.trim() || chat.title,
                     updatedAt: new Date(),
                     messages: chat.messages.map((message) => {
                       if (message.id !== streamAssistantMessageId) {
@@ -274,6 +556,8 @@ export const useChatStore = create<ChatState>()(
           }
 
           set({ isTyping: false })
+          void get().loadGlobalMemory()
+          void get().loadChatMemory(chatId)
         } catch (error) {
           const message =
             error instanceof Error

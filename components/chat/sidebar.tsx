@@ -114,7 +114,10 @@ export function Sidebar() {
 
               {sidebarExpanded && (
                 <>
-                  <div className="flex-1 truncate text-sm font-medium">
+                  <div
+                    className="flex-1 truncate text-sm font-medium"
+                    title={chat.title}
+                  >
                     {chat.title}
                   </div>
                   <button

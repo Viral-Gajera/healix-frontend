@@ -8,7 +8,10 @@ interface ApiErrorPayload {
 export interface StreamCallbacks {
   onStart?: () => void
   onToken?: (chunk: string) => void
-  onDone?: (assistant: BackendMessage | null) => void
+  onDone?: (
+    assistant: BackendMessage | null,
+    session?: BackendSession | null
+  ) => void
   onError?: (message: string) => void
 }
 
@@ -45,6 +48,16 @@ export interface BackendSession {
   summary?: string
 }
 
+export interface BackendUserProfile {
+  user_id: string
+  name?: string | null
+  email?: string | null
+  password?: string | null
+  gender?: string | null
+  global_memory?: string | null
+  settings?: Record<string, string | number | boolean | null>
+}
+
 export interface BackendMessage {
   role: "user" | "assistant"
   content: string
@@ -68,48 +81,159 @@ interface MessagesResponse {
 
 interface SendMessageResponse {
   session_id: string
+  session?: BackendSession | null
   user_message: BackendMessage | null
   assistant_message: BackendMessage | null
 }
 
-export async function listSessions(): Promise<BackendSession[]> {
-  const data = await apiFetch<SessionsResponse>("/sessions")
+interface UserProfileResponse {
+  profile: BackendUserProfile | null
+}
+
+interface MemoryResponse {
+  memory: string
+}
+
+export async function listSessions(userId: string): Promise<BackendSession[]> {
+  const encodedUserId = encodeURIComponent(userId)
+  const data = await apiFetch<SessionsResponse>(
+    `/sessions?user_id=${encodedUserId}`
+  )
   return data.sessions
 }
 
 export async function createSession(
-  topic = "Disease Diagnosis Chat"
+  topic = "Disease Diagnosis Chat",
+  userId: string
 ): Promise<BackendSession> {
   const data = await apiFetch<CreateSessionResponse>("/sessions", {
     method: "POST",
-    body: JSON.stringify({ topic }),
+    body: JSON.stringify({ topic, user_id: userId }),
   })
   return data.session
 }
 
-export async function deleteSession(sessionId: string): Promise<void> {
-  await apiFetch(`/sessions/${sessionId}`, {
+export async function getUserProfile(
+  userId: string,
+  name?: string,
+  email?: string
+): Promise<BackendUserProfile | null> {
+  const params = new URLSearchParams()
+  if (name) params.set("name", name)
+  if (email) params.set("email", email)
+  const suffix = params.toString() ? `?${params.toString()}` : ""
+  const data = await apiFetch<UserProfileResponse>(
+    `/users/${encodeURIComponent(userId)}${suffix}`
+  )
+  return data.profile
+}
+
+export async function updateUserProfile(
+  userId: string,
+  payload: {
+    name?: string
+    email?: string
+    password?: string
+    gender?: string
+    settings?: Record<string, string | number | boolean | null>
+  }
+): Promise<BackendUserProfile | null> {
+  const data = await apiFetch<UserProfileResponse>(
+    `/users/${encodeURIComponent(userId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  )
+  return data.profile
+}
+
+export async function getUserGlobalMemory(
+  userId: string,
+  name?: string,
+  email?: string
+): Promise<string> {
+  const params = new URLSearchParams()
+  if (name) params.set("name", name)
+  if (email) params.set("email", email)
+  const suffix = params.toString() ? `?${params.toString()}` : ""
+  const data = await apiFetch<MemoryResponse>(
+    `/users/${encodeURIComponent(userId)}/memory${suffix}`
+  )
+  return data.memory ?? ""
+}
+
+export async function updateUserGlobalMemory(
+  userId: string,
+  memory: string
+): Promise<string> {
+  const data = await apiFetch<MemoryResponse>(
+    `/users/${encodeURIComponent(userId)}/memory`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ memory }),
+    }
+  )
+  return data.memory ?? ""
+}
+
+export async function deleteSession(
+  sessionId: string,
+  userId: string
+): Promise<void> {
+  const encodedUserId = encodeURIComponent(userId)
+  await apiFetch(`/sessions/${sessionId}?user_id=${encodedUserId}`, {
     method: "DELETE",
   })
 }
 
 export async function getSessionMessages(
   sessionId: string,
+  userId: string,
   limit = 200
 ): Promise<BackendMessage[]> {
+  const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<MessagesResponse>(
-    `/sessions/${sessionId}/messages?limit=${limit}`
+    `/sessions/${sessionId}/messages?user_id=${encodedUserId}&limit=${limit}`
   )
   return data.messages
 }
 
+export async function getSessionMemory(
+  sessionId: string,
+  userId: string
+): Promise<string> {
+  const encodedUserId = encodeURIComponent(userId)
+  const data = await apiFetch<MemoryResponse>(
+    `/sessions/${sessionId}/memory?user_id=${encodedUserId}`
+  )
+  return data.memory ?? ""
+}
+
+export async function updateSessionMemory(
+  sessionId: string,
+  userId: string,
+  memory: string
+): Promise<string> {
+  const encodedUserId = encodeURIComponent(userId)
+  const data = await apiFetch<MemoryResponse>(
+    `/sessions/${sessionId}/memory?user_id=${encodedUserId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ memory }),
+    }
+  )
+  return data.memory ?? ""
+}
+
 export async function sendSessionMessage(
   sessionId: string,
+  userId: string,
   content: string
 ): Promise<SendMessageResponse> {
   return apiFetch<SendMessageResponse>(`/sessions/${sessionId}/messages`, {
     method: "POST",
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ user_id: userId, content }),
   })
 }
 
@@ -142,16 +266,20 @@ function parseSseEvent(
 
 export async function streamSessionMessage(
   sessionId: string,
+  userId: string,
   content: string,
   callbacks: StreamCallbacks
 ): Promise<void> {
-  const response = await fetch(`${BACKEND_BASE_URL}/sessions/${sessionId}/messages/stream`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ content }),
-  })
+  const response = await fetch(
+    `${BACKEND_BASE_URL}/sessions/${sessionId}/messages/stream`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user_id: userId, content }),
+    }
+  )
 
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`
@@ -202,8 +330,10 @@ export async function streamSessionMessage(
       }
 
       if (parsed.event === "done") {
-        const assistant = (parsed.data?.assistant_message ?? null) as BackendMessage | null
-        callbacks.onDone?.(assistant)
+        const assistant = (parsed.data?.assistant_message ??
+          null) as BackendMessage | null
+        const session = (parsed.data?.session ?? null) as BackendSession | null
+        callbacks.onDone?.(assistant, session)
       }
 
       if (parsed.event === "error") {
