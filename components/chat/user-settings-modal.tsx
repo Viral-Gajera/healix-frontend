@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react"
 import { X } from "lucide-react"
 import { useChatStore } from "@/hooks/use-chat-store"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface UserSettingsModalProps {
   open: boolean
@@ -39,6 +48,7 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
     if (!open || !profile) {
       return
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setName(profile.name)
     setEmail(profile.email)
     setPassword(profile.password || "")
@@ -49,6 +59,7 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
     if (!open) {
       return
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMemoryDraft(globalMemory)
   }, [open, globalMemory])
 
@@ -119,87 +130,84 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Name</label>
-                <input
+                <Input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  className="h-11 rounded-md bg-background px-3 py-2 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
-                <input
+                <Input
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  className="h-11 rounded-md bg-background px-3 py-2 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Password</label>
-                <input
+                <Input
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  className="h-11 rounded-md bg-background px-3 py-2 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Gender</label>
-                <select
-                  value={gender}
-                  onChange={(event) => setGender(event.target.value)}
-                  className="flex h-11 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal-500"
+                <Select
+                  value={gender || "_none"}
+                  onValueChange={(val) =>
+                    setGender(val === null || val === "_none" ? "" : val)
+                  }
                 >
-                  <option value="" className="bg-background text-foreground">
-                    Select Gender (Optional)
-                  </option>
-                  <option
-                    value="Male"
-                    className="bg-background text-foreground"
-                  >
-                    Male
-                  </option>
-                  <option
-                    value="Female"
-                    className="bg-background text-foreground"
-                  >
-                    Female
-                  </option>
-                  <option
-                    value="Other"
-                    className="bg-background text-foreground"
-                  >
-                    Other
-                  </option>
-                  <option
-                    value="Prefer not to say"
-                    className="bg-background text-foreground"
-                  >
-                    Prefer not to say
-                  </option>
-                  {gender &&
-                    !["Male", "Female", "Other", "Prefer not to say"].includes(
-                      gender
-                    ) && (
-                      <option
-                        value={gender}
-                        className="bg-background text-foreground"
-                      >
-                        {gender}
-                      </option>
-                    )}
-                </select>
+                  <SelectTrigger className="flex !h-11 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0">
+                    <SelectValue placeholder="Select Gender (Optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="min-w-[200px] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
+                    <SelectItem value="_none" className="cursor-pointer">
+                      Select Gender (Optional)
+                    </SelectItem>
+                    <SelectItem value="Male" className="cursor-pointer">
+                      Male
+                    </SelectItem>
+                    <SelectItem value="Female" className="cursor-pointer">
+                      Female
+                    </SelectItem>
+                    <SelectItem value="Other" className="cursor-pointer">
+                      Other
+                    </SelectItem>
+                    <SelectItem
+                      value="Prefer not to say"
+                      className="cursor-pointer"
+                    >
+                      Prefer not to say
+                    </SelectItem>
+                    {gender &&
+                      ![
+                        "Male",
+                        "Female",
+                        "Other",
+                        "Prefer not to say",
+                      ].includes(gender) && (
+                        <SelectItem value={gender} className="cursor-pointer">
+                          {gender}
+                        </SelectItem>
+                      )}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ) : (
             <div className="space-y-3">
               <label className="text-sm font-medium">Global Memory</label>
-              <textarea
+              <Textarea
                 value={memoryDraft}
                 onChange={(event) => setMemoryDraft(event.target.value)}
                 placeholder={
                   "## Preferences\n- Prefers concise answers\n\n## Ongoing Concerns\n- Seasonal allergies"
                 }
-                className="min-h-[320px] w-full rounded-md border border-input bg-background px-3 py-3 text-sm outline-none focus:border-teal-500"
+                className="min-h-[320px] rounded-md bg-background px-3 py-3 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
               />
               <p className="text-xs text-muted-foreground">
                 Keep this short and structured. Markdown with small headings and
