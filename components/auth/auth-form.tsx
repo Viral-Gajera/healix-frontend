@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ArrowRight } from "lucide-react"
 import { useChatStore } from "@/hooks/use-chat-store"
 import { useRouter } from "next/navigation"
+import { login as apiLogin, signup as apiSignup } from "@/lib/api"
 
 export function AuthForm() {
   const router = useRouter()
@@ -13,12 +14,44 @@ export function AuthForm() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     setIsLoading(true)
-    login(name, email)
-    router.push("/chat")
+
+    try {
+      if (isLogin) {
+        // Login flow
+        if (!email || !password) {
+          setError("Email and password are required")
+          setIsLoading(false)
+          return
+        }
+        const response = await apiLogin(email, password)
+        login(response.name, response.email, response.user_id)
+        router.push("/chat")
+      } else {
+        // Signup flow
+        if (!email || !password || !name) {
+          setError("Name, email, and password are required")
+          setIsLoading(false)
+          return
+        }
+        if (password.length < 4) {
+          setError("Password must be at least 4 characters")
+          setIsLoading(false)
+          return
+        }
+        const response = await apiSignup(email, password, name)
+        login(response.name, response.email, response.user_id)
+        router.push("/chat")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Authentication failed")
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -100,6 +133,12 @@ export function AuthForm() {
           </div>
         </div>
 
+        {error && (
+          <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 border border-red-200">
+            {error}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={isLoading}
@@ -120,7 +159,10 @@ export function AuthForm() {
         {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
         <button
           type="button"
-          onClick={() => setIsLogin(!isLogin)}
+          onClick={() => {
+            setIsLogin(!isLogin)
+            setError("")
+          }}
           className="font-semibold text-teal-600 transition-colors hover:text-teal-500"
         >
           {isLogin ? "Sign up for free" : "Sign in instead"}

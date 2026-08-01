@@ -31,7 +31,7 @@ interface ChatState {
   error: string | null
   sidebarExpanded: boolean
 
-  login: (name?: string, email?: string) => void
+  login: (name?: string, email?: string, userId?: string) => void
   logout: () => void
   initialize: () => Promise<void>
   loadProfile: () => Promise<void>
@@ -105,18 +105,19 @@ export const useChatStore = create<ChatState>()(
       error: null,
       sidebarExpanded: true,
 
-      login: (name, email) => {
+      login: (name?: string, email?: string, userId?: string) => {
         const normalizedEmail = email?.trim().toLowerCase() || "user@healix.app"
-        const userId = `user_${normalizedEmail.replace(/[^a-z0-9]/g, "_")}`
+        const derivedUserId = `user_${normalizedEmail.replace(/[^a-z0-9]/g, "_")}`
+        const finalUserId = userId || derivedUserId
         set({
           user: {
-            id: userId,
+            id: finalUserId,
             name: name?.trim() || "Healix User",
             email: normalizedEmail,
             avatarUrl: `https://i.pravatar.cc/150?u=${encodeURIComponent(normalizedEmail)}`,
           },
           profile: {
-            id: userId,
+            id: finalUserId,
             name: name?.trim() || "Healix User",
             email: normalizedEmail,
             avatarUrl: `https://i.pravatar.cc/150?u=${encodeURIComponent(normalizedEmail)}`,

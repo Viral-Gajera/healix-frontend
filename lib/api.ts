@@ -94,6 +94,34 @@ interface MemoryResponse {
   memory: string
 }
 
+interface AuthResponse {
+  user_id: string
+  name: string
+  email: string
+  message: string
+}
+
+export async function signup(
+  email: string,
+  password: string,
+  name?: string
+): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>("/auth/signup", {
+    method: "POST",
+    body: JSON.stringify({ email, password, name }),
+  })
+}
+
+export async function login(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  })
+}
+
 export async function listSessions(userId: string): Promise<BackendSession[]> {
   const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<SessionsResponse>(

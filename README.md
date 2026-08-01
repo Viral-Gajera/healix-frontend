@@ -29,6 +29,17 @@ npx shadcn@latest add button
 - Remove boilerplate code and create a clean UI for the application.
 ```
 
+```md
+Implement actual login and signup feature
+
+- current login and signup feature is dummy, allowing user with wrong credentials to login.
+- Implement actual login and signup feature with proper validation and error handling.
+- use components from shadcn/ui library for login and signup forms.
+- no need to encrypt password for now, just store it as is.
+- remove all existing user data from database, it will be fresh start!
+- Use minimum context and focus on github copilot token optimization, don't make unnecessary changes.
+```
+
 # Image Gallery
 
 <img width="1470" height="956" alt="image" src="https://github.com/user-attachments/assets/830efb54-e65b-4e53-a28d-bafe5f167680" />
