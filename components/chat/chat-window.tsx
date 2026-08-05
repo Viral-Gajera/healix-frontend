@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { HeartPulse } from "lucide-react"
 import { MessageBubble } from "@/components/chat/message-bubble"
 
@@ -10,7 +10,7 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ chatId }: ChatWindowProps) {
-  const { chats, isTyping, user } = useChatStore()
+  const { chats, isTyping, profile } = useChatStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const chat = chats.find((c) => c.id === chatId)
@@ -68,7 +68,7 @@ export function ChatWindow({ chatId }: ChatWindowProps) {
               <MessageBubble
                 key={message.id}
                 message={message}
-                user={user}
+                user={profile}
                 showStreamingCursor={showStreamingCursor}
               />
             )

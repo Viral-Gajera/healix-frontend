@@ -1,11 +1,11 @@
 import React from "react"
-import { Message, User } from "@/lib/types"
+import { Message, UserProfile } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { HeartPulse, User as UserIcon } from "lucide-react"
 
 interface MessageBubbleProps {
   message: Message
-  user: User | null
+  user: UserProfile | null
   showStreamingCursor?: boolean
 }
 

@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react"
 import { ChatWindow } from "@/components/chat/chat-window"
 import { ChatInput } from "@/components/chat/chat-input"
 import { ChatMemoryModal } from "@/components/chat/chat-memory-modal"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { useRouter } from "next/navigation"
 import { Brain } from "lucide-react"
 
@@ -24,7 +24,7 @@ export default function ChatIdPage({
     setActiveChatId(chatId)
     void loadChatMessages(chatId)
     return () => setActiveChatId(null)
-  }, [chatId, setActiveChatId, loadChatMessages])
+  }, [chatId])
 
   const chatExists = chats.some((c) => c.id === chatId)
 

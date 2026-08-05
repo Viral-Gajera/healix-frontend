@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ArrowRight } from "lucide-react"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { useRouter } from "next/navigation"
 import { login as apiLogin, signup as apiSignup } from "@/lib/api"
 

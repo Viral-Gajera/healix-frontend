@@ -1,6 +1,6 @@
 "use client"
 
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { useRouter, useParams } from "next/navigation"
 import {
   HeartPulse,
@@ -107,17 +107,15 @@ export function Sidebar() {
                   : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
               )}
               onClick={() => handleSelectChat(chat.id)}
+              title={chat.title}
             >
               <MessageSquare
-                className={cn("h-7 w-6 shrink-0", isActive && "text-teal-500")}
+                className={cn("h-7 w-5 shrink-0", isActive && "text-teal-500")}
               />
 
               {sidebarExpanded && (
                 <>
-                  <div
-                    className="flex-1 truncate text-sm font-medium"
-                    title={chat.title}
-                  >
+                  <div className="flex-1 truncate text-sm font-medium">
                     {chat.title}
                   </div>
                   <button

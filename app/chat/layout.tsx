@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { Sidebar } from "@/components/chat/sidebar"
 
 export default function ChatLayout({
@@ -10,19 +11,18 @@ export default function ChatLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, initialize } = useChatStore()
   const router = useRouter()
+  const { profile, initialize } = useChatStore()
 
   useEffect(() => {
-    // Basic auth check
-    if (!user) {
+    if (!profile) {
       router.push("/")
       return
     }
     void initialize()
-  }, [user, router, initialize])
+  }, [profile?.id])
 
-  if (!user) return null
+  if (!profile) return null
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

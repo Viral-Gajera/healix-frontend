@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Send, Paperclip, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 
 interface ChatInputProps {
   chatId: string
@@ -57,7 +57,7 @@ export function ChatInput({ chatId }: ChatInputProps) {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask Healix about your health..."
-          className="custom-scrollbar max-h-[200px] flex-1 resize-none border-none bg-transparent px-2 py-3 text-[15px] leading-relaxed outline-none focus:ring-0"
+          className="custom-scrollbar max-h-50 flex-1 resize-none border-none bg-transparent px-2 py-2.5 text-[14px] leading-relaxed outline-none focus:ring-0"
           rows={1}
           disabled={isTyping}
         />
@@ -68,7 +68,7 @@ export function ChatInput({ chatId }: ChatInputProps) {
           }}
           disabled={!message.trim() || isTyping}
           className={cn(
-            "mb-0.5 flex shrink-0 items-center justify-center rounded-md p-3 transition-all",
+            "flex shrink-0 items-center justify-center rounded-md p-3 transition-all",
             message.trim() && !isTyping
               ? "bg-teal-600 text-white shadow-md hover:bg-teal-700"
               : "cursor-not-allowed bg-muted text-muted-foreground"

@@ -9,8 +9,8 @@ export interface StreamCallbacks {
   onStart?: () => void
   onToken?: (chunk: string) => void
   onDone?: (
-    assistant: BackendMessage | null,
-    session?: BackendSession | null
+    assistant: Message | null,
+    chat?: Chat | null
   ) => void
   onError?: (message: string) => void
 }
@@ -40,54 +40,55 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
-export interface BackendSession {
-  session_id: string
+export interface Chat {
+  chat_id: string
   created_at: string
   updated_at?: string
   topic?: string
   summary?: string
 }
 
-export interface BackendUserProfile {
+export interface UserProfile {
   user_id: string
   name?: string | null
   email?: string | null
   password?: string | null
   gender?: string | null
+  avatarUrl?: string | null
   global_memory?: string | null
   settings?: Record<string, string | number | boolean | null>
 }
 
-export interface BackendMessage {
+export interface Message {
   role: "user" | "assistant"
   content: string
   timestamp: string
 }
 
-interface SessionsResponse {
-  sessions: BackendSession[]
+interface ChatsResponse {
+  chats: Chat[]
   count: number
 }
 
-interface CreateSessionResponse {
-  session: BackendSession
+interface CreateChatResponse {
+  chat: Chat
   model_name: string
 }
 
 interface MessagesResponse {
-  messages: BackendMessage[]
+  messages: Message[]
   count: number
 }
 
 interface SendMessageResponse {
-  session_id: string
-  session?: BackendSession | null
-  user_message: BackendMessage | null
-  assistant_message: BackendMessage | null
+  chat_id: string
+  chat?: Chat | null
+  user_message: Message | null
+  assistant_message: Message | null
 }
 
 interface UserProfileResponse {
-  profile: BackendUserProfile | null
+  profile: UserProfile | null
 }
 
 interface MemoryResponse {
@@ -122,30 +123,30 @@ export async function login(
   })
 }
 
-export async function listSessions(userId: string): Promise<BackendSession[]> {
+export async function listChats(userId: string): Promise<Chat[]> {
   const encodedUserId = encodeURIComponent(userId)
-  const data = await apiFetch<SessionsResponse>(
-    `/sessions?user_id=${encodedUserId}`
+  const data = await apiFetch<ChatsResponse>(
+    `/chats?user_id=${encodedUserId}`
   )
-  return data.sessions
+  return data.chats
 }
 
-export async function createSession(
+export async function createChat(
   topic = "Disease Diagnosis Chat",
   userId: string
-): Promise<BackendSession> {
-  const data = await apiFetch<CreateSessionResponse>("/sessions", {
+): Promise<Chat> {
+  const data = await apiFetch<CreateChatResponse>("/chats", {
     method: "POST",
     body: JSON.stringify({ topic, user_id: userId }),
   })
-  return data.session
+  return data.chat
 }
 
 export async function getUserProfile(
   userId: string,
   name?: string,
   email?: string
-): Promise<BackendUserProfile | null> {
+): Promise<UserProfile | null> {
   const params = new URLSearchParams()
   if (name) params.set("name", name)
   if (email) params.set("email", email)
@@ -165,7 +166,7 @@ export async function updateUserProfile(
     gender?: string
     settings?: Record<string, string | number | boolean | null>
   }
-): Promise<BackendUserProfile | null> {
+): Promise<UserProfile | null> {
   const data = await apiFetch<UserProfileResponse>(
     `/users/${encodeURIComponent(userId)}`,
     {
@@ -205,47 +206,47 @@ export async function updateUserGlobalMemory(
   return data.memory ?? ""
 }
 
-export async function deleteSession(
-  sessionId: string,
+export async function deleteChat(
+  chatId: string,
   userId: string
 ): Promise<void> {
   const encodedUserId = encodeURIComponent(userId)
-  await apiFetch(`/sessions/${sessionId}?user_id=${encodedUserId}`, {
+  await apiFetch(`/chats/${chatId}?user_id=${encodedUserId}`, {
     method: "DELETE",
   })
 }
 
-export async function getSessionMessages(
-  sessionId: string,
+export async function getChatMessages(
+  chatId: string,
   userId: string,
   limit = 200
-): Promise<BackendMessage[]> {
+): Promise<Message[]> {
   const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<MessagesResponse>(
-    `/sessions/${sessionId}/messages?user_id=${encodedUserId}&limit=${limit}`
+    `/chats/${chatId}/messages?user_id=${encodedUserId}&limit=${limit}`
   )
   return data.messages
 }
 
-export async function getSessionMemory(
-  sessionId: string,
+export async function getChatMemory(
+  chatId: string,
   userId: string
 ): Promise<string> {
   const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<MemoryResponse>(
-    `/sessions/${sessionId}/memory?user_id=${encodedUserId}`
+    `/chats/${chatId}/memory?user_id=${encodedUserId}`
   )
   return data.memory ?? ""
 }
 
-export async function updateSessionMemory(
-  sessionId: string,
+export async function updateChatMemory(
+  chatId: string,
   userId: string,
   memory: string
 ): Promise<string> {
   const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<MemoryResponse>(
-    `/sessions/${sessionId}/memory?user_id=${encodedUserId}`,
+    `/chats/${chatId}/memory?user_id=${encodedUserId}`,
     {
       method: "PUT",
       body: JSON.stringify({ memory }),
@@ -254,12 +255,12 @@ export async function updateSessionMemory(
   return data.memory ?? ""
 }
 
-export async function sendSessionMessage(
-  sessionId: string,
+export async function sendChatMessage(
+  chatId: string,
   userId: string,
   content: string
 ): Promise<SendMessageResponse> {
-  return apiFetch<SendMessageResponse>(`/sessions/${sessionId}/messages`, {
+  return apiFetch<SendMessageResponse>(`/chats/${chatId}/messages`, {
     method: "POST",
     body: JSON.stringify({ user_id: userId, content }),
   })
@@ -292,14 +293,14 @@ function parseSseEvent(
   }
 }
 
-export async function streamSessionMessage(
-  sessionId: string,
+export async function streamChatMessage(
+  chatId: string,
   userId: string,
   content: string,
   callbacks: StreamCallbacks
 ): Promise<void> {
   const response = await fetch(
-    `${BACKEND_BASE_URL}/sessions/${sessionId}/messages/stream`,
+    `${BACKEND_BASE_URL}/chats/${chatId}/messages/stream`,
     {
       method: "POST",
       headers: {
@@ -359,9 +360,9 @@ export async function streamSessionMessage(
 
       if (parsed.event === "done") {
         const assistant = (parsed.data?.assistant_message ??
-          null) as BackendMessage | null
-        const session = (parsed.data?.session ?? null) as BackendSession | null
-        callbacks.onDone?.(assistant, session)
+          null) as Message | null
+        const chat = (parsed.data?.chat ?? null) as Chat | null
+        callbacks.onDone?.(assistant, chat)
       }
 
       if (parsed.event === "error") {

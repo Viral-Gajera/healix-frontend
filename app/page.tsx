@@ -2,19 +2,19 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { Activity, HeartPulse, Sparkles } from "lucide-react"
 import { AuthForm } from "@/components/auth/auth-form"
 
 export default function Page() {
   const router = useRouter()
-  const user = useChatStore((state) => state.user)
+  const profile = useChatStore((state) => state.profile)
 
   useEffect(() => {
-    if (user) {
+    if (profile) {
       router.push("/chat")
     }
-  }, [user, router])
+  }, [profile, router])
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row dark:bg-[#0a0a0a]">

@@ -1,4 +1,5 @@
-import { useChatStore } from "@/hooks/use-chat-store"
+/* eslint-disable @next/next/no-img-element */
+import { useChatStore } from "@/hooks/store"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { Moon, Sun, LogOut } from "lucide-react"
@@ -7,7 +8,7 @@ import { useEffect, useState } from "react"
 import { UserSettingsModal } from "@/components/chat/user-settings-modal"
 
 export function SidebarFooter() {
-  const { user, logout, sidebarExpanded } = useChatStore()
+  const { profile, logout, sidebarExpanded } = useChatStore()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
@@ -35,21 +36,23 @@ export function SidebarFooter() {
             )}
             title="Open settings"
           >
-            {user?.avatarUrl ? (
+            {profile?.avatarUrl ? (
               <img
-                src={user.avatarUrl}
-                alt={user?.name || "User"}
+                src={profile.avatarUrl}
+                alt={profile?.name || "User"}
                 className="h-9 w-9 rounded-full border border-border object-cover ring-2 ring-background"
               />
             ) : (
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 font-bold text-teal-700 dark:bg-teal-900/50 dark:text-teal-400">
-                {user?.name?.charAt(0) || "U"}
+                {profile?.name?.charAt(0) || "U"}
               </div>
             )}
             <div className="flex flex-col truncate">
-              <span className="truncate text-sm font-medium">{user?.name}</span>
+              <span className="truncate text-sm font-medium">
+                {profile?.name}
+              </span>
               <span className="truncate text-xs text-muted-foreground">
-                {user?.email}
+                {profile?.email}
               </span>
             </div>
           </button>

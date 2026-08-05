@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { X } from "lucide-react"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -21,11 +21,8 @@ interface UserSettingsModalProps {
 export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
   const {
     profile,
-    globalMemory,
     loadProfile,
-    loadGlobalMemory,
     saveProfile,
-    saveGlobalMemory,
   } = useChatStore()
 
   const [name, setName] = useState("")
@@ -41,8 +38,7 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
       return
     }
     void loadProfile()
-    void loadGlobalMemory()
-  }, [open, loadProfile, loadGlobalMemory])
+  }, [open, profile?.id])
 
   useEffect(() => {
     if (!open || !profile) {
@@ -53,15 +49,8 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
     setEmail(profile.email)
     setPassword(profile.password || "")
     setGender(profile.gender || "")
+    setMemoryDraft(profile.globalMemory)
   }, [open, profile])
-
-  useEffect(() => {
-    if (!open) {
-      return
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMemoryDraft(globalMemory)
-  }, [open, globalMemory])
 
   if (!open) {
     return null
@@ -74,9 +63,9 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
       email,
       password,
       gender,
+      globalMemory: memoryDraft,
       settings: profile?.settings || {},
     })
-    await saveGlobalMemory(memoryDraft)
     setIsSaving(false)
     onClose()
   }

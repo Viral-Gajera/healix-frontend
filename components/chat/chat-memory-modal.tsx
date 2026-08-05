@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { X } from "lucide-react"
-import { useChatStore } from "@/hooks/use-chat-store"
+import { useChatStore } from "@/hooks/store"
 
 interface ChatMemoryModalProps {
   chatId: string
@@ -23,15 +23,11 @@ export function ChatMemoryModal({
     if (!open) {
       return
     }
-    void loadChatMemory(chatId)
-  }, [open, chatId, loadChatMemory])
-
-  useEffect(() => {
-    if (!open) {
-      return
-    }
-    setMemoryDraft(chatMemories[chatId] || "")
-  }, [open, chatId, chatMemories])
+    void (async () => {
+      await loadChatMemory(chatId)
+      setMemoryDraft(chatMemories[chatId] || "")
+    })()
+  }, [open, chatId])
 
   if (!open) {
     return null

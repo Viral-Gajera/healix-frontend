@@ -34,7 +34,11 @@ export interface UserSettings {
   [key: string]: string | number | boolean | null | undefined
 }
 
-export interface UserProfile extends User {
+export interface UserProfile {
+  id: string
+  name: string
+  email: string
+  avatarUrl?: string
   password?: string
   gender?: string
   globalMemory: string
