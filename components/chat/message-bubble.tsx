@@ -26,11 +26,11 @@ export const MessageBubble = React.memo(function MessageBubble({
       {/* Avatar */}
       <div className="mt-1 shrink-0">
         {isUser ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800 font-semibold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 font-semibold text-slate-500 dark:bg-slate-800">
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 text-white shadow-md shadow-teal-500/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-teal-400 to-emerald-600 text-white shadow-md shadow-teal-500/20">
             <HeartPulse className="h-4 w-4" />
           </div>
         )}
@@ -39,7 +39,7 @@ export const MessageBubble = React.memo(function MessageBubble({
       {/* Message Bubble */}
       <div
         className={cn(
-          "flex max-w-[100%] flex-col",
+          "flex max-w-full flex-col",
           isUser ? "items-end" : "items-start"
         )}
       >
