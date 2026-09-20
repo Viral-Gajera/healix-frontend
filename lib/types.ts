@@ -27,7 +27,6 @@ export interface User {
   id: string
   name: string
   email: string
-  avatarUrl?: string
 }
 
 export interface UserSettings {
@@ -38,7 +37,6 @@ export interface UserProfile {
   id: string
   name: string
   email: string
-  avatarUrl?: string
   password?: string
   gender?: string
   globalMemory: string

@@ -1,7 +1,7 @@
 import React from "react"
 import { Message, UserProfile } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { HeartPulse, User as UserIcon } from "lucide-react"
+import { HeartPulse } from "lucide-react"
 
 interface MessageBubbleProps {
   message: Message
@@ -26,17 +26,9 @@ export const MessageBubble = React.memo(function MessageBubble({
       {/* Avatar */}
       <div className="mt-1 shrink-0">
         {isUser ? (
-          user?.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt="User"
-              className="h-8 w-8 rounded-full border border-border object-cover ring-2 ring-background"
-            />
-          ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800">
-              <UserIcon className="h-5 w-5" />
-            </div>
-          )
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800 font-semibold">
+            {user?.name?.charAt(0).toUpperCase() || "U"}
+          </div>
         ) : (
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 text-white shadow-md shadow-teal-500/20">
             <HeartPulse className="h-4 w-4" />

@@ -10,7 +10,7 @@ export interface ChatState {
   error: string | null
   sidebarExpanded: boolean
 
-  login: (name?: string, email?: string, userId?: string) => void
+  login: (userId: string, name?: string, email?: string) => void
   logout: () => void
   initialize: () => Promise<void>
   loadProfile: () => Promise<void>

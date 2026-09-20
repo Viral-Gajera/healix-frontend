@@ -54,7 +54,6 @@ export interface UserProfile {
   email?: string | null
   password?: string | null
   gender?: string | null
-  avatarUrl?: string | null
   global_memory?: string | null
   settings?: Record<string, string | number | boolean | null>
 }

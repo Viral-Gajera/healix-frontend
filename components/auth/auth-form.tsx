@@ -30,7 +30,7 @@ export function AuthForm() {
           return
         }
         const response = await apiLogin(email, password)
-        login(response.name, response.email, response.user_id)
+        login(response.user_id, response.name, response.email)
         router.push("/chat")
       } else {
         // Signup flow
@@ -45,7 +45,7 @@ export function AuthForm() {
           return
         }
         const response = await apiSignup(email, password, name)
-        login(response.name, response.email, response.user_id)
+        login(response.user_id, response.name, response.email)
         router.push("/chat")
       }
     } catch (err) {

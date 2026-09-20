@@ -30,15 +30,10 @@ export const toUserProfile = (
     return null
   }
 
-  const email = profile.email?.trim() || ""
-
   return {
     id: profile.user_id,
-    name: profile.name?.trim() || "",
-    email: email,
-    avatarUrl:
-      profile.avatarUrl ||
-      `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}`,
+    name: profile.name || "",
+    email: profile.email || "",
     password: profile.password || "",
     gender: profile.gender || "",
     globalMemory: profile.global_memory || "",

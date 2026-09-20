@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { useChatStore } from "@/hooks/store"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
@@ -36,17 +35,9 @@ export function SidebarFooter() {
             )}
             title="Open settings"
           >
-            {profile?.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile?.name || "User"}
-                className="h-9 w-9 rounded-full border border-border object-cover ring-2 ring-background"
-              />
-            ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 font-bold text-teal-700 dark:bg-teal-900/50 dark:text-teal-400">
-                {profile?.name?.charAt(0) || "U"}
-              </div>
-            )}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-100 font-bold text-teal-700 dark:bg-teal-900/50 dark:text-teal-400">
+              {profile?.name?.charAt(0) || "U"}
+            </div>
             <div className="flex flex-col truncate">
               <span className="truncate text-sm font-medium">
                 {profile?.name}
