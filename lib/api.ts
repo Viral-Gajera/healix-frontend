@@ -6,7 +6,6 @@ interface ApiErrorPayload {
 }
 
 export interface ApiResponse<T> {
-  code: number
   detail: string
   data: T | null
 }
