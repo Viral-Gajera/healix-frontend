@@ -40,13 +40,23 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
 
   const handleSave = async () => {
     setIsSaving(true)
-    await saveProfile({
-      name: formData.name || undefined,
-      email: formData.email || undefined,
-      password: formData.password || undefined,
-      gender: formData.gender || undefined,
-      globalMemory: formData.globalMemory || undefined,
-    })
+    
+    // Save based on active tab to avoid premature returns
+    if (activeTab === "personal") {
+      // Save only profile fields (name, email, password, gender)
+      await saveProfile({
+        name: formData.name || undefined,
+        email: formData.email || undefined,
+        password: formData.password || undefined,
+        gender: formData.gender || undefined,
+      })
+    } else {
+      // Save only global memory
+      await saveProfile({
+        globalMemory: formData.globalMemory || undefined,
+      })
+    }
+    
     setIsSaving(false)
     onClose()
   }
