@@ -11,7 +11,6 @@ export const createAuthActions = (set: (state: Partial<ChatState> | ((state: Cha
         password: "",
         gender: "",
         globalMemory: "",
-        settings: {},
       } as UserProfile,
     })
   },

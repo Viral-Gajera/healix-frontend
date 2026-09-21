@@ -41,15 +41,6 @@ export const createProfileActions = (set: SetFunction, get: GetFunction) => ({
     }
 
     try {
-      const nextSettings = Object.fromEntries(
-        Object.entries(
-          updates.settings ?? profile?.settings ?? {}
-        ).filter(
-          (entry): entry is [string, string | number | boolean | null] =>
-            entry[1] !== undefined
-        )
-      )
-      
       // Handle global memory separately and reload profile after
       if (updates.globalMemory !== undefined) {
         await updateUserGlobalMemory(profile.id, updates.globalMemory)
@@ -68,7 +59,6 @@ export const createProfileActions = (set: SetFunction, get: GetFunction) => ({
         email: updates.email,
         password: updates.password,
         gender: updates.gender,
-        settings: nextSettings,
       })
       const nextProfile = toUserProfile(backendProfile)
       set({

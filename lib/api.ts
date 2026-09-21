@@ -55,7 +55,6 @@ export interface UserProfile {
   password?: string | null
   gender?: string | null
   global_memory?: string | null
-  settings?: Record<string, string | number | boolean | null>
 }
 
 export interface Message {
@@ -162,7 +161,6 @@ export async function updateUserProfile(
     email?: string
     password?: string
     gender?: string
-    settings?: Record<string, string | number | boolean | null>
   }
 ): Promise<UserProfile | null> {
   const data = await apiFetch<UserProfileResponse>(

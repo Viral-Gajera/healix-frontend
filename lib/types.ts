@@ -29,10 +29,6 @@ export interface User {
   email: string
 }
 
-export interface UserSettings {
-  [key: string]: string | number | boolean | null | undefined
-}
-
 export interface UserProfile {
   id: string
   name: string
@@ -40,5 +36,4 @@ export interface UserProfile {
   password?: string
   gender?: string
   globalMemory: string
-  settings: UserSettings
 }

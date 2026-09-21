@@ -37,6 +37,5 @@ export const toUserProfile = (
     password: profile.password || "",
     gender: profile.gender || "",
     globalMemory: profile.global_memory || "",
-    settings: profile.settings || {},
   }
 }

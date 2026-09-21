@@ -64,7 +64,6 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
       password,
       gender,
       globalMemory: memoryDraft,
-      settings: profile?.settings || {},
     })
     setIsSaving(false)
     onClose()
