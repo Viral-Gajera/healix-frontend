@@ -1,5 +1,6 @@
 import { Attachment, Message, Chat } from "@/lib/types"
-import { streamChatMessage } from "@/lib/api"
+import { streamChatMessage, getChatMessages } from "@/lib/api"
+import { toMessage } from "../converters"
 import { ChatState } from "../types"
 
 type SetFunction = (state: Partial<ChatState> | ((state: ChatState) => Partial<ChatState>)) => void
@@ -12,10 +13,7 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
     attachments?: Attachment[]
   ) => {
     const profile = get().profile
-    if (!profile) {
-      set({ error: "Please sign in to send messages" })
-      return
-    }
+    if (!profile) return
 
     const streamAssistantMessageId = `msg-stream-${Date.now()}`
     const userMessage: Message = {
@@ -162,6 +160,36 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
             : chat
         ),
       }))
+    }
+  },
+
+  loadChatMessages: async (chatId: string) => {
+    const profile = get().profile
+    if (!profile) return
+
+    try {
+      const messages = await getChatMessages(chatId, profile.id)
+      set((state: ChatState) => ({
+        chats: state.chats.map((chat: Chat) =>
+          chat.id === chatId
+            ? {
+                ...chat,
+                messages: messages.map(toMessage),
+                updatedAt:
+                  messages.length > 0
+                    ? new Date(messages[messages.length - 1].timestamp)
+                    : chat.updatedAt,
+              }
+            : chat
+        ),
+      }))
+    } catch (error) {
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to load chat messages",
+      })
     }
   },
 })

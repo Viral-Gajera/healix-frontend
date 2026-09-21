@@ -1,7 +1,6 @@
 type StateValues = {
   profile: null
   chats: []
-  chatMemories: Record<string, string>
   activeChatId: null
   isTyping: boolean
   isLoadingChats: boolean
@@ -12,7 +11,6 @@ type StateValues = {
 export const getInitialState = (): StateValues => ({
   profile: null,
   chats: [],
-  chatMemories: {},
   activeChatId: null,
   isTyping: false,
   isLoadingChats: false,

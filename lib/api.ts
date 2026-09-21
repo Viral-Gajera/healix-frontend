@@ -123,9 +123,8 @@ export async function login(
 }
 
 export async function listChats(userId: string): Promise<Chat[]> {
-  const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<ChatsResponse>(
-    `/chats?user_id=${encodedUserId}`
+    `/chats?user_id=${userId}`
   )
   return data.chats
 }
@@ -151,7 +150,7 @@ export async function getUserProfile(
   if (email) params.set("email", email)
   const suffix = params.toString() ? `?${params.toString()}` : ""
   const data = await apiFetch<UserProfileResponse>(
-    `/users/${encodeURIComponent(userId)}${suffix}`
+    `/users/${userId}${suffix}`
   )
   return data.profile
 }
@@ -167,7 +166,7 @@ export async function updateUserProfile(
   }
 ): Promise<UserProfile | null> {
   const data = await apiFetch<UserProfileResponse>(
-    `/users/${encodeURIComponent(userId)}`,
+    `/users/${userId}`,
     {
       method: "PUT",
       body: JSON.stringify(payload),
@@ -186,7 +185,7 @@ export async function getUserGlobalMemory(
   if (email) params.set("email", email)
   const suffix = params.toString() ? `?${params.toString()}` : ""
   const data = await apiFetch<MemoryResponse>(
-    `/users/${encodeURIComponent(userId)}/memory${suffix}`
+    `/users/${userId}/memory${suffix}`
   )
   return data.memory ?? ""
 }
@@ -196,7 +195,7 @@ export async function updateUserGlobalMemory(
   memory: string
 ): Promise<string> {
   const data = await apiFetch<MemoryResponse>(
-    `/users/${encodeURIComponent(userId)}/memory`,
+    `/users/${userId}/memory`,
     {
       method: "PUT",
       body: JSON.stringify({ memory }),
@@ -209,8 +208,7 @@ export async function deleteChat(
   chatId: string,
   userId: string
 ): Promise<void> {
-  const encodedUserId = encodeURIComponent(userId)
-  await apiFetch(`/chats/${chatId}?user_id=${encodedUserId}`, {
+  await apiFetch(`/chats/${chatId}?user_id=${userId}`, {
     method: "DELETE",
   })
 }
@@ -220,38 +218,10 @@ export async function getChatMessages(
   userId: string,
   limit = 200
 ): Promise<Message[]> {
-  const encodedUserId = encodeURIComponent(userId)
   const data = await apiFetch<MessagesResponse>(
-    `/chats/${chatId}/messages?user_id=${encodedUserId}&limit=${limit}`
+    `/chats/${chatId}/messages?user_id=${userId}&limit=${limit}`
   )
   return data.messages
-}
-
-export async function getChatMemory(
-  chatId: string,
-  userId: string
-): Promise<string> {
-  const encodedUserId = encodeURIComponent(userId)
-  const data = await apiFetch<MemoryResponse>(
-    `/chats/${chatId}/memory?user_id=${encodedUserId}`
-  )
-  return data.memory ?? ""
-}
-
-export async function updateChatMemory(
-  chatId: string,
-  userId: string,
-  memory: string
-): Promise<string> {
-  const encodedUserId = encodeURIComponent(userId)
-  const data = await apiFetch<MemoryResponse>(
-    `/chats/${chatId}/memory?user_id=${encodedUserId}`,
-    {
-      method: "PUT",
-      body: JSON.stringify({ memory }),
-    }
-  )
-  return data.memory ?? ""
 }
 
 export async function sendChatMessage(

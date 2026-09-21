@@ -19,7 +19,6 @@ export const createAuthActions = (set: (state: Partial<ChatState> | ((state: Cha
   logout: () =>
     set({
       profile: null,
-      chatMemories: {},
       activeChatId: null,
       chats: [],
       error: null,

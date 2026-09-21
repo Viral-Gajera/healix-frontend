@@ -1,5 +1,5 @@
 import { UserProfile } from "@/lib/types"
-import { getUserProfile, updateUserProfile as persistUserProfile } from "@/lib/api"
+import { getUserProfile, updateUserProfile as persistUserProfile, updateUserGlobalMemory } from "@/lib/api"
 import { toUserProfile } from "../converters"
 import { ChatState } from "../types"
 
@@ -49,6 +49,20 @@ export const createProfileActions = (set: SetFunction, get: GetFunction) => ({
             entry[1] !== undefined
         )
       )
+      
+      // Handle global memory separately and reload profile after
+      if (updates.globalMemory !== undefined) {
+        await updateUserGlobalMemory(profile.id, updates.globalMemory)
+        // Reload the full profile to get the updated global memory
+        const reloadedProfile = await getUserProfile(profile.id)
+        const nextProfile = toUserProfile(reloadedProfile)
+        set({
+          profile: nextProfile,
+          error: null,
+        })
+        return
+      }
+      
       const backendProfile = await persistUserProfile(profile.id, {
         name: updates.name,
         email: updates.email,
