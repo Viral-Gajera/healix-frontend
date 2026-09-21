@@ -13,7 +13,7 @@ export function ChatWindow({ chatId }: ChatWindowProps) {
   const { chats, isTyping, profile } = useChatStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const chat = chats.find((c) => c.id === chatId)
+  const chat = chats.find((c) => c.chatId === chatId)
   const lastMessageIndex = chat ? chat.messages.length - 1 : -1
 
   const scrollToBottom = () => {

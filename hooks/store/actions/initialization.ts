@@ -3,7 +3,7 @@ import {
   getUserProfile,
   listChats,
 } from "@/lib/api"
-import { toUserProfile, toChat } from "../converters"
+import { toChat } from "../converters"
 import { ChatState } from "../types"
 
 type SetFunction = (state: Partial<ChatState> | ((state: ChatState) => Partial<ChatState>)) => void
@@ -12,7 +12,7 @@ type GetFunction = () => ChatState
 export const createInitializationActions = (set: SetFunction, get: GetFunction) => ({
   initialize: async () => {
     const profile = get().profile
-    const userId = profile?.id
+    const userId = profile?.userId
     if (!userId) {
       set({
         chats: [],
@@ -28,21 +28,20 @@ export const createInitializationActions = (set: SetFunction, get: GetFunction) 
       await checkHealth()
       // Parallel load: profile and sessions together
       const [backendProfile, sessions] = await Promise.all([
-        getUserProfile(userId, profile.name, profile.email),
+        getUserProfile(userId, profile.name || undefined, profile.email || undefined),
         listChats(userId),
       ])
 
-      const nextProfile = toUserProfile(backendProfile)
       const chats = sessions.map(toChat)
 
       set((state: ChatState) => ({
-        profile: nextProfile,
+        profile: backendProfile || state.profile,
         chats,
         activeChatId:
           state.activeChatId &&
-          chats.some((chat) => chat.id === state.activeChatId)
+          chats.some((chat) => chat.chatId === state.activeChatId)
             ? state.activeChatId
-            : (chats[0]?.id ?? null),
+            : (chats[0]?.chatId ?? null),
         isLoadingChats: false,
       }))
     } catch (error) {

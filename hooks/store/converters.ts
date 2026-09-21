@@ -2,17 +2,16 @@ import { Chat, Message, UserProfile } from "@/lib/types"
 import {
   Message as ApiMessage,
   Chat as ApiChat,
-  UserProfile as ApiUserProfile,
 } from "@/lib/api"
 
 export const toDate = (value?: string): Date =>
   value ? new Date(value) : new Date()
 
 export const toChat = (apiChat: ApiChat): Chat => ({
-  id: apiChat.chat_id,
+  chatId: apiChat.chatId,
   title: apiChat.topic?.trim() || "New Conversation",
-  createdAt: toDate(apiChat.created_at),
-  updatedAt: toDate(apiChat.updated_at ?? apiChat.created_at),
+  createdAt: toDate(apiChat.createdAt),
+  updatedAt: toDate(apiChat.updatedAt ?? apiChat.createdAt),
   messages: [],
 })
 
@@ -22,20 +21,3 @@ export const toMessage = (item: ApiMessage): Message => ({
   content: item.content,
   createdAt: toDate(item.timestamp),
 })
-
-export const toUserProfile = (
-  profile: ApiUserProfile | null
-): UserProfile | null => {
-  if (!profile) {
-    return null
-  }
-
-  return {
-    id: profile.user_id,
-    name: profile.name || "",
-    email: profile.email || "",
-    password: profile.password || "",
-    gender: profile.gender || "",
-    globalMemory: profile.global_memory || "",
-  }
-}

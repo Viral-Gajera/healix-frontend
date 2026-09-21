@@ -16,7 +16,7 @@ export interface Message {
 }
 
 export interface Chat {
-  id: string
+  chatId: string
   title: string
   createdAt: Date
   updatedAt: Date
@@ -30,10 +30,12 @@ export interface User {
 }
 
 export interface UserProfile {
-  id: string
-  name: string
-  email: string
-  password?: string
-  gender?: string
-  globalMemory: string
+  userId: string
+  name?: string | null
+  email?: string | null
+  password?: string | null
+  gender?: string | null
+  globalMemory?: string | null
+  createdAt?: string
+  updatedAt?: string
 }

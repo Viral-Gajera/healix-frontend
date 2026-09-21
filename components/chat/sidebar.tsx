@@ -96,17 +96,17 @@ export function Sidebar() {
         )}
 
         {chats.map((chat) => {
-          const isActive = params.chatId === chat.id
+          const isActive = params.chatId === chat.chatId
           return (
             <div
-              key={chat.id}
+              key={chat.chatId}
               className={cn(
                 "group flex cursor-pointer items-center gap-3 rounded-md border border-border/50 px-3 py-2 transition-all",
                 isActive
                   ? "bg-accent text-accent-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
               )}
-              onClick={() => handleSelectChat(chat.id)}
+              onClick={() => handleSelectChat(chat.chatId)}
               title={chat.title}
             >
               <MessageSquare
@@ -121,7 +121,7 @@ export function Sidebar() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      void deleteChat(chat.id)
+                      void deleteChat(chat.chatId)
                       if (isActive) router.push("/chat")
                     }}
                     className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"

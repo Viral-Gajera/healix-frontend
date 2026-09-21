@@ -20,14 +20,14 @@ export const createChatActions = (set: SetFunction, get: GetFunction) => ({
     }
 
     try {
-      const chat = await createChat("Disease Diagnosis Chat", profile.id)
+      const chat = await createChat("Disease Diagnosis Chat", profile.userId)
       const newChat = toChat(chat)
       set((state: ChatState) => ({
         chats: [newChat, ...state.chats],
-        activeChatId: newChat.id,
+        activeChatId: newChat.chatId,
         error: null,
       }))
-      return newChat.id
+      return newChat.chatId
     } catch (error) {
       set({
         error:
@@ -47,9 +47,9 @@ export const createChatActions = (set: SetFunction, get: GetFunction) => ({
     }
 
     try {
-      await deleteBackendChat(id, profile.id)
+      await deleteBackendChat(id, profile.userId)
       set((state: ChatState) => ({
-        chats: state.chats.filter((c: Chat) => c.id !== id),
+        chats: state.chats.filter((c: Chat) => c.chatId !== id),
         activeChatId: state.activeChatId === id ? null : state.activeChatId,
         error: null,
       }))

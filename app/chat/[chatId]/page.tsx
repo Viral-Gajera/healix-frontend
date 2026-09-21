@@ -16,7 +16,7 @@ export default function ChatIdPage({
   const chatId = resolvedParams.chatId
   const { chats, setActiveChatId, loadChatMessages } = useChatStore()
   const router = useRouter()
-  const chatExists = chats.some((c) => c.id === chatId)
+  const chatExists = chats.some((c) => c.chatId === chatId)
 
   useEffect(() => {
     setActiveChatId(chatId)
@@ -38,7 +38,7 @@ export default function ChatIdPage({
       {/* Header for mobile or just extra context */}
       <div className="z-10 flex h-14 shrink-0 items-center justify-between border-b border-border/40 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h1 className="truncate text-sm font-semibold">
-          {chats.find((c) => c.id === chatId)?.title || "New Chat"}
+          {chats.find((c) => c.chatId === chatId)?.title || "New Chat"}
         </h1>
       </div>
 

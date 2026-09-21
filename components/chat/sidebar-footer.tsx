@@ -78,6 +78,7 @@ export function SidebarFooter() {
         </div>
       </div>
       <UserSettingsModal
+        key={profile?.updatedAt || 'closed'}
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       />

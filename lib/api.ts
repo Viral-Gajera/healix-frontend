@@ -5,6 +5,12 @@ interface ApiErrorPayload {
   detail?: string
 }
 
+export interface ApiResponse<T> {
+  code: number
+  detail: string
+  data: T | null
+}
+
 export interface StreamCallbacks {
   onStart?: () => void
   onToken?: (chunk: string) => void
@@ -41,20 +47,20 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export interface Chat {
-  chat_id: string
-  created_at: string
-  updated_at?: string
+  chatId: string
+  createdAt: string
+  updatedAt?: string
   topic?: string
   summary?: string
 }
 
 export interface UserProfile {
-  user_id: string
+  userId: string
   name?: string | null
   email?: string | null
   password?: string | null
   gender?: string | null
-  global_memory?: string | null
+  globalMemory?: string | null
 }
 
 export interface Message {
@@ -63,49 +69,19 @@ export interface Message {
   timestamp: string
 }
 
-interface ChatsResponse {
-  chats: Chat[]
-  count: number
-}
-
-interface CreateChatResponse {
-  chat: Chat
-  model_name: string
-}
-
-interface MessagesResponse {
-  messages: Message[]
-  count: number
-}
-
 interface SendMessageResponse {
-  chat_id: string
+  chatId: string
   chat?: Chat | null
   user_message: Message | null
   assistant_message: Message | null
-}
-
-interface UserProfileResponse {
-  profile: UserProfile | null
-}
-
-interface MemoryResponse {
-  memory: string
-}
-
-interface AuthResponse {
-  user_id: string
-  name: string
-  email: string
-  message: string
 }
 
 export async function signup(
   email: string,
   password: string,
   name?: string
-): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>("/auth/signup", {
+): Promise<ApiResponse<UserProfile>> {
+  return apiFetch<ApiResponse<UserProfile>>("/auth/signup", {
     method: "POST",
     body: JSON.stringify({ email, password, name }),
   })
@@ -114,29 +90,32 @@ export async function signup(
 export async function login(
   email: string,
   password: string
-): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>("/auth/login", {
+): Promise<ApiResponse<UserProfile>> {
+  return apiFetch<ApiResponse<UserProfile>>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   })
 }
 
 export async function listChats(userId: string): Promise<Chat[]> {
-  const data = await apiFetch<ChatsResponse>(
+  const response = await apiFetch<ApiResponse<{ chats: Chat[]; count: number }>>(
     `/chats?user_id=${userId}`
   )
-  return data.chats
+  return response.data?.chats ?? []
 }
 
 export async function createChat(
   topic = "Disease Diagnosis Chat",
   userId: string
 ): Promise<Chat> {
-  const data = await apiFetch<CreateChatResponse>("/chats", {
-    method: "POST",
-    body: JSON.stringify({ topic, user_id: userId }),
-  })
-  return data.chat
+  const response = await apiFetch<ApiResponse<{ chat: Chat; model_name: string }>>(
+    "/chats",
+    {
+      method: "POST",
+      body: JSON.stringify({ topic, user_id: userId }),
+    }
+  )
+  return response.data?.chat || { chatId: "", createdAt: "", updatedAt: "" }
 }
 
 export async function getUserProfile(
@@ -148,10 +127,10 @@ export async function getUserProfile(
   if (name) params.set("name", name)
   if (email) params.set("email", email)
   const suffix = params.toString() ? `?${params.toString()}` : ""
-  const data = await apiFetch<UserProfileResponse>(
+  const response = await apiFetch<ApiResponse<UserProfile>>(
     `/users/${userId}${suffix}`
   )
-  return data.profile
+  return response.data ?? null
 }
 
 export async function updateUserProfile(
@@ -163,14 +142,14 @@ export async function updateUserProfile(
     gender?: string
   }
 ): Promise<UserProfile | null> {
-  const data = await apiFetch<UserProfileResponse>(
+  const response = await apiFetch<ApiResponse<UserProfile>>(
     `/users/${userId}`,
     {
       method: "PUT",
       body: JSON.stringify(payload),
     }
   )
-  return data.profile
+  return response.data ?? null
 }
 
 export async function getUserGlobalMemory(
@@ -182,33 +161,36 @@ export async function getUserGlobalMemory(
   if (name) params.set("name", name)
   if (email) params.set("email", email)
   const suffix = params.toString() ? `?${params.toString()}` : ""
-  const data = await apiFetch<MemoryResponse>(
+  const response = await apiFetch<ApiResponse<{ userId: string; memory: string }>>(
     `/users/${userId}/memory${suffix}`
   )
-  return data.memory ?? ""
+  return response.data?.memory ?? ""
 }
 
 export async function updateUserGlobalMemory(
   userId: string,
   memory: string
 ): Promise<string> {
-  const data = await apiFetch<MemoryResponse>(
+  const response = await apiFetch<ApiResponse<{ userId: string; memory: string }>>(
     `/users/${userId}/memory`,
     {
       method: "PUT",
       body: JSON.stringify({ memory }),
     }
   )
-  return data.memory ?? ""
+  return response.data?.memory ?? ""
 }
 
 export async function deleteChat(
   chatId: string,
   userId: string
 ): Promise<void> {
-  await apiFetch(`/chats/${chatId}?user_id=${userId}`, {
-    method: "DELETE",
-  })
+  await apiFetch<ApiResponse<{ status: string; chat_id: string }>>(
+    `/chats/${chatId}?user_id=${userId}`,
+    {
+      method: "DELETE",
+    }
+  )
 }
 
 export async function getChatMessages(
@@ -216,10 +198,10 @@ export async function getChatMessages(
   userId: string,
   limit = 200
 ): Promise<Message[]> {
-  const data = await apiFetch<MessagesResponse>(
+  const response = await apiFetch<ApiResponse<{ messages: Message[]; count: number }>>(
     `/chats/${chatId}/messages?user_id=${userId}&limit=${limit}`
   )
-  return data.messages
+  return response.data?.messages ?? []
 }
 
 export async function sendChatMessage(
@@ -227,10 +209,19 @@ export async function sendChatMessage(
   userId: string,
   content: string
 ): Promise<SendMessageResponse> {
-  return apiFetch<SendMessageResponse>(`/chats/${chatId}/messages`, {
-    method: "POST",
-    body: JSON.stringify({ user_id: userId, content }),
-  })
+  const response = await apiFetch<ApiResponse<SendMessageResponse>>(
+    `/chats/${chatId}/messages`,
+    {
+      method: "POST",
+      body: JSON.stringify({ user_id: userId, content }),
+    }
+  )
+  return response.data || {
+    chatId,
+    chat: undefined,
+    user_message: null,
+    assistant_message: null,
+  }
 }
 
 function parseSseEvent(
@@ -343,5 +334,8 @@ export async function streamChatMessage(
 }
 
 export async function checkHealth(): Promise<{ status: string }> {
-  return apiFetch<{ status: string }>("/health")
+  const response = await apiFetch<ApiResponse<{ status: string; model_type: string; n_diseases: number }>>(
+    "/health"
+  )
+  return response.data || { status: "unknown" }
 }

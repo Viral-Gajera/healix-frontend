@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { UserProfile } from "@/lib/types"
 
 interface UserSettingsModalProps {
   open: boolean
@@ -19,17 +20,10 @@ interface UserSettingsModalProps {
 }
 
 export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
-  const {
-    profile,
-    loadProfile,
-    saveProfile,
-  } = useChatStore()
+  const { profile, loadProfile, saveProfile } = useChatStore()
 
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [gender, setGender] = useState("")
-  const [memoryDraft, setMemoryDraft] = useState("")
+  // Initialize formData directly from props. When key changes, React recreates component state.
+  const [formData, setFormData] = useState<UserProfile>(profile!)
   const [activeTab, setActiveTab] = useState<"personal" | "memory">("personal")
   const [isSaving, setIsSaving] = useState(false)
 
@@ -38,19 +32,7 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
       return
     }
     void loadProfile()
-  }, [open, profile?.id])
-
-  useEffect(() => {
-    if (!open || !profile) {
-      return
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setName(profile.name)
-    setEmail(profile.email)
-    setPassword(profile.password || "")
-    setGender(profile.gender || "")
-    setMemoryDraft(profile.globalMemory)
-  }, [open, profile])
+  }, [open, loadProfile])
 
   if (!open) {
     return null
@@ -59,11 +41,11 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
   const handleSave = async () => {
     setIsSaving(true)
     await saveProfile({
-      name,
-      email,
-      password,
-      gender,
-      globalMemory: memoryDraft,
+      name: formData.name || undefined,
+      email: formData.email || undefined,
+      password: formData.password || undefined,
+      gender: formData.gender || undefined,
+      globalMemory: formData.globalMemory || undefined,
     })
     setIsSaving(false)
     onClose()
@@ -119,16 +101,26 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Name</label>
                 <Input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  value={formData.name ?? ""}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
                   className="h-11 rounded-md bg-background px-3 py-2 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
                 <Input
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  value={formData.email ?? ""}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      email: event.target.value,
+                    }))
+                  }
                   className="h-11 rounded-md bg-background px-3 py-2 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
                 />
               </div>
@@ -136,18 +128,24 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
                 <label className="text-sm font-medium">Password</label>
                 <Input
                   type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  value={formData.password ?? ""}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: event.target.value,
+                    }))
+                  }
                   className="h-11 rounded-md bg-background px-3 py-2 text-sm focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Gender</label>
                 <Select
-                  value={gender || "_none"}
-                  onValueChange={(val) =>
-                    setGender(val === null || val === "_none" ? "" : val)
-                  }
+                  value={formData.gender || "_none"}
+                  onValueChange={(val) => {
+                    const gender = val === "_none" ? "" : val
+                    setFormData((prev) => ({ ...prev, gender }))
+                  }}
                 >
                   <SelectTrigger className="flex !h-11 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal-500 focus-visible:border-teal-500 focus-visible:ring-0">
                     <SelectValue placeholder="Select Gender (Optional)" />
@@ -171,15 +169,18 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
                     >
                       Prefer not to say
                     </SelectItem>
-                    {gender &&
+                    {formData.gender &&
                       ![
                         "Male",
                         "Female",
                         "Other",
                         "Prefer not to say",
-                      ].includes(gender) && (
-                        <SelectItem value={gender} className="cursor-pointer">
-                          {gender}
+                      ].includes(formData.gender) && (
+                        <SelectItem
+                          value={formData.gender}
+                          className="cursor-pointer"
+                        >
+                          {formData.gender}
                         </SelectItem>
                       )}
                   </SelectContent>
@@ -190,8 +191,13 @@ export function UserSettingsModal({ open, onClose }: UserSettingsModalProps) {
             <div className="space-y-3">
               <label className="text-sm font-medium">Global Memory</label>
               <Textarea
-                value={memoryDraft}
-                onChange={(event) => setMemoryDraft(event.target.value)}
+                value={formData.globalMemory ?? ""}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    globalMemory: event.target.value,
+                  }))
+                }
                 placeholder={
                   "## Preferences\n- Prefers concise answers\n\n## Ongoing Concerns\n- Seasonal allergies"
                 }

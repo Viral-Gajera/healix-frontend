@@ -35,7 +35,7 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
       isTyping: true,
       error: null,
       chats: state.chats.map((chat: Chat) => {
-        if (chat.id === chatId) {
+        if (chat.chatId === chatId) {
           return {
             ...chat,
             updatedAt: new Date(),
@@ -54,10 +54,10 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
       let streamError: string | null = null
       let streamDone = false
 
-      await streamChatMessage(chatId, profile.id, content, {
+      await streamChatMessage(chatId, profile.userId, content, {
         onToken: (chunk) => {
           set((state: ChatState) => {
-            const chatIndex = state.chats.findIndex((c: Chat) => c.id === chatId)
+            const chatIndex = state.chats.findIndex((c: Chat) => c.chatId === chatId)
             if (chatIndex === -1) return state
             
             const chat = state.chats[chatIndex]
@@ -87,7 +87,7 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
         onDone: (assistant, session) => {
           streamDone = true
           set((state: ChatState) => {
-            const chatIndex = state.chats.findIndex((c: Chat) => c.id === chatId)
+            const chatIndex = state.chats.findIndex((c: Chat) => c.chatId === chatId)
             if (chatIndex === -1) return state
             
             const chat = state.chats[chatIndex]
@@ -144,7 +144,7 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
         isTyping: false,
         error: message,
         chats: state.chats.map((chat: Chat) =>
-          chat.id === chatId
+          chat.chatId === chatId
             ? {
                 ...chat,
                 updatedAt: new Date(),
@@ -168,10 +168,10 @@ export const createMessageActions = (set: SetFunction, get: GetFunction) => ({
     if (!profile) return
 
     try {
-      const messages = await getChatMessages(chatId, profile.id)
+      const messages = await getChatMessages(chatId, profile.userId)
       set((state: ChatState) => ({
         chats: state.chats.map((chat: Chat) =>
-          chat.id === chatId
+          chat.chatId === chatId
             ? {
                 ...chat,
                 messages: messages.map(toMessage),

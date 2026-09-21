@@ -20,7 +20,7 @@ export default function ChatLayout({
       return
     }
     void initialize()
-  }, [profile?.id])
+  }, [profile?.userId])
 
   if (!profile) return null
 

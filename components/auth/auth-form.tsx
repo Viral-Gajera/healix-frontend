@@ -30,8 +30,10 @@ export function AuthForm() {
           return
         }
         const response = await apiLogin(email, password)
-        login(response.user_id, response.name, response.email)
-        router.push("/chat")
+        if (response.data) {
+          login(response.data)
+          router.push("/chat")
+        }
       } else {
         // Signup flow
         if (!email || !password || !name) {
@@ -45,8 +47,10 @@ export function AuthForm() {
           return
         }
         const response = await apiSignup(email, password, name)
-        login(response.user_id, response.name, response.email)
-        router.push("/chat")
+        if (response.data) {
+          login(response.data)
+          router.push("/chat")
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed")

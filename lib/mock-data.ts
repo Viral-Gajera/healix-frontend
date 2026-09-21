@@ -8,7 +8,7 @@ export const mockUser: User = {
 
 export const initialChats: Chat[] = [
   {
-    id: "chat-1",
+    chatId: "chat-1",
     title: "General Health Inquiry",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
@@ -29,7 +29,7 @@ export const initialChats: Chat[] = [
     ],
   },
   {
-    id: "chat-2",
+    chatId: "chat-2",
     title: "Diet & Nutrition",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
